@@ -77,6 +77,7 @@ export function StatusPage() {
   const [showUnpaidWarning, setShowUnpaidWarning] = useState(false)
   const [showMissingModal, setShowMissingModal] = useState(false)
   const [showMissingInfo, setShowMissingInfo] = useState(false)
+  const [showSubmittedInfo, setShowSubmittedInfo] = useState(false)
   const [missingFile, setMissingFile] = useState<File | null>(null)
   const [missingChallanNo, setMissingChallanNo] = useState('')
   const [missingOffence, setMissingOffence] = useState('')
@@ -113,6 +114,7 @@ export function StatusPage() {
   useModalA11y(showUnpaidWarning, () => setShowUnpaidWarning(false))
   useModalA11y(showMissingModal, () => closeMissingModal())
   useModalA11y(showMissingInfo, () => setShowMissingInfo(false))
+  useModalA11y(showSubmittedInfo, () => setShowSubmittedInfo(false))
 
   const filteredChallans = useMemo(() => {
     if (activeFilter === 'all') return allChallans
@@ -497,7 +499,7 @@ export function StatusPage() {
                 {submittedChallans.length > 0 && (
                   <div className="mt-2 space-y-4">
                     <h2 className="font-display font-bold text-lg text-text-secondary">
-                      Submitted Challans ({submittedChallans.length})
+                      In Progress with ChallanPay ({submittedChallans.length})
                     </h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-36 md:pb-0">
                       {submittedChallans.map((challan) => (
@@ -509,8 +511,8 @@ export function StatusPage() {
                           <div className="flex items-center justify-between gap-3 mb-3">
                             <span className="text-xs font-mono text-text-secondary truncate">#{challan.challanNumber.slice(0, 12)}...</span>
                             <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full bg-amber-100 text-amber-700 whitespace-nowrap">
-                              <CircleCheck className="w-3 h-3" />
-                              Submitted
+                              <Clock className="w-3 h-3" />
+                              In Progress
                             </span>
                           </div>
 
@@ -539,7 +541,14 @@ export function StatusPage() {
                           {/* Status text + Track Status */}
                           <div className="mt-3 flex items-center justify-between gap-3">
                             <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700">
-                              <Info className="w-3.5 h-3.5" />
+                              <button
+                                type="button"
+                                onClick={() => setShowSubmittedInfo(true)}
+                                aria-label="What does this status mean?"
+                                className="inline-flex items-center justify-center -m-1 p-1 rounded-full text-amber-700 hover:text-amber-800 transition-colors cursor-pointer"
+                              >
+                                <Info className="w-3.5 h-3.5" />
+                              </button>
                               Challan Submitted & under process
                             </span>
                             <button
@@ -994,6 +1003,51 @@ export function StatusPage() {
                 className="mt-5 w-full py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors text-sm shadow-sm"
               >
                 Report a Missing Challan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Submitted Challan Info Modal */}
+      {showSubmittedInfo && (
+        <div
+          className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={() => setShowSubmittedInfo(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="submitted-info-title"
+        >
+          <div
+            className="relative w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between px-5 pt-4 pb-3 border-b border-border gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                  <Info className="w-4 h-4 text-amber-700" />
+                </div>
+                <h3 id="submitted-info-title" className="font-display text-base font-bold text-text-primary">
+                  Challan In Progress
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowSubmittedInfo(false)}
+                aria-label="Close"
+                className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors flex-shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-5">
+              <p className="text-sm text-text-secondary leading-relaxed">
+                This challan has been submitted to the ChallanPay team. Please sit back and relax. Your challan will be resolved within the specified timeline.
+              </p>
+              <button
+                onClick={() => setShowSubmittedInfo(false)}
+                className="mt-5 w-full py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors text-sm shadow-sm"
+              >
+                Got it
               </button>
             </div>
           </div>
