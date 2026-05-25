@@ -322,7 +322,7 @@ export function StatusPage() {
                       <FilePlus2 className="w-3.5 h-3.5 text-red-500" />
                     </div>
                     <div className="flex-1 min-w-0 flex items-center gap-1.5">
-                      <p className="text-sm font-semibold text-text-primary">Missing a challan?</p>
+                      <p className="text-sm font-semibold text-text-primary whitespace-nowrap">Missing a challan?</p>
                       <button
                         type="button"
                         aria-label="Why can challans be missed?"
@@ -332,18 +332,18 @@ export function StatusPage() {
                         <Info className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                    <div className="flex items-center gap-3 flex-shrink-0">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                       <button
                         type="button"
                         onClick={() => setMissingDismissed(true)}
-                        className="min-w-[88px] min-h-11 px-6 py-2.5 text-sm font-semibold text-text-secondary bg-white border border-border hover:bg-gray-50 rounded-lg transition-colors"
+                        className="min-w-[56px] sm:min-w-[88px] min-h-11 px-3 sm:px-6 py-2.5 text-sm font-semibold text-text-secondary bg-white border border-border hover:bg-gray-50 rounded-lg transition-colors"
                       >
                         No
                       </button>
                       <button
                         type="button"
                         onClick={() => setShowMissingModal(true)}
-                        className="min-w-[88px] min-h-11 px-6 py-2.5 text-sm font-semibold text-primary bg-white border border-primary hover:bg-primary/5 rounded-lg transition-colors"
+                        className="min-w-[56px] sm:min-w-[88px] min-h-11 px-3 sm:px-6 py-2.5 text-sm font-semibold text-primary bg-white border border-primary hover:bg-primary/5 rounded-lg transition-colors"
                       >
                         Yes
                       </button>
