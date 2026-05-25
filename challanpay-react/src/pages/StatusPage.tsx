@@ -503,13 +503,12 @@ export function StatusPage() {
                       {submittedChallans.map((challan) => (
                         <div
                           key={challan.id}
-                          aria-disabled="true"
-                          className="bg-white rounded-xl border border-success/30 shadow-sm p-5 pointer-events-none select-none"
+                          className="bg-white rounded-xl border border-border shadow-sm p-5"
                         >
                           {/* Card Header */}
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="text-xs font-mono text-text-secondary">#{challan.challanNumber.slice(0, 12)}...</span>
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-1 rounded-full bg-success/15 text-success tracking-wide whitespace-nowrap">
+                          <div className="flex items-center justify-between gap-3 mb-3">
+                            <span className="text-xs font-mono text-text-secondary truncate">#{challan.challanNumber.slice(0, 12)}...</span>
+                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full bg-amber-100 text-amber-700 whitespace-nowrap">
                               <CircleCheck className="w-3 h-3" />
                               Submitted
                             </span>
@@ -532,6 +531,24 @@ export function StatusPage() {
                           <div className="space-y-1.5 text-sm">
                             <p className="line-clamp-1 leading-snug font-medium text-text-primary" title={challan.violation}>{challan.violation}</p>
                             <p className="text-xs text-text-secondary truncate" title={`${challan.date} · ${challan.location}`}>{challan.date} · {truncateWords(challan.location, 3)}</p>
+                          </div>
+
+                          {/* Divider */}
+                          <hr className="border-border mt-4" />
+
+                          {/* Status text + Track Status */}
+                          <div className="mt-3 flex items-center justify-between gap-3">
+                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700">
+                              <Info className="w-3.5 h-3.5" />
+                              Challan Submitted & under process
+                            </span>
+                            <button
+                              onClick={() => navigate(`/track-status?challan=${encodeURIComponent(challan.challanNumber)}`)}
+                              className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                            >
+                              Track Status
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </div>
                       ))}
