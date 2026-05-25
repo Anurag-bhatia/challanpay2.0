@@ -28,6 +28,7 @@ export function PaymentPage() {
   const challans = useChallanStore((s) => s.challans)
   const selectedChallanIds = useChallanStore((s) => s.selectedChallanIds)
   const recordTransaction = useChallanStore((s) => s.recordTransaction)
+  const markSubmitted = useChallanStore((s) => s.markSubmitted)
   const { state: pageState } = usePageState()
 
   const summary = useMemo(() => {
@@ -88,6 +89,7 @@ export function PaymentPage() {
   const handlePayment = () => {
     const txnId = `TXN${Date.now()}`
     recordTransaction(txnId, grandTotal, selectedChallanIds.length)
+    markSubmitted(selectedChallanIds)
     navigate('/payment/completed')
   }
 
