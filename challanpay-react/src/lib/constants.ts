@@ -1,4 +1,4 @@
-export const WHATSAPP_NUMBER = '919599648108'
+export const WHATSAPP_NUMBER = '919988441033'
 export const SUPPORT_EMAIL = 'support@challanpay.com'
 
 export const FOOTER_LINKS = {

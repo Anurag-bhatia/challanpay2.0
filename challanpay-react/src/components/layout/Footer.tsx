@@ -15,7 +15,7 @@ export function Footer() {
   const legalLinks = [
     { label: t.footer.privacyPolicy, href: '/privacy-policy' },
     { label: t.footer.termsConditions, href: '/terms' },
-    { label: t.footer.refundPolicy, href: '/terms' },
+    { label: t.footer.refundPolicy, href: '/refund-policy' },
   ]
 
   const supportLinks = [

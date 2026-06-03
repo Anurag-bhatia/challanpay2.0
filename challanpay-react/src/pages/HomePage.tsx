@@ -12,26 +12,28 @@ import { ComparisonSection } from '@/components/home/ComparisonSection'
 import { PartnersSection } from '@/components/home/PartnersSection'
 import { NeedHelpSection } from '@/components/home/NeedHelpSection'
 import { BackedBySection } from '@/components/home/BackedBySection'
+import { DefiningMilestoneSection } from '@/components/home/DefiningMilestoneSection'
 import { VerificationModal } from '@/components/home/VerificationModal'
 
 export function HomePage() {
   return (
-    <>
+    <div className="landing-page">
       <VerificationModal />
       <HeroSection />
       <TrustedLogosScroll />
       {/* <BeRoadSmartBanner /> */}
       <StatsSection />
       <MultiVehicleCTA />
-      <TestimonialsSection />
       <VideoTestimonials />
+      <TestimonialsSection />
       <HowItWorksAccordion />
       <BlogsPreview />
+      <DefiningMilestoneSection />
       <NewsPreview />
       <BackedBySection />
       <ComparisonSection />
       <NeedHelpSection />
       <PartnersSection />
-    </>
+    </div>
   )
 }

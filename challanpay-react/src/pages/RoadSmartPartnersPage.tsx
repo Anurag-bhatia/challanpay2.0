@@ -88,7 +88,7 @@ function RegistrationModal({ open, onClose }: { open: boolean; onClose: () => vo
     // Build WhatsApp message with form data
     const msg = `Hi, I want to become a Road Smart Partner.\n\nName: ${form.name}\nMobile: ${form.mobile}\nCity: ${form.city}\nBusiness Type: ${form.business}`
     window.open(
-      `https://wa.me/919599648108?text=${encodeURIComponent(msg)}`,
+      `https://wa.me/919988441033?text=${encodeURIComponent(msg)}`,
       '_blank',
     )
     setSubmitted(true)

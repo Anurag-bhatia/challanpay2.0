@@ -164,6 +164,51 @@
   }
 }
 
+/* Landing page only: bump text sizes slightly (~6%) for a more confident hierarchy.
+   Scoped via a single wrapper so the rest of the app is unaffected.
+   Tune the global feel by changing --t-scale below. */
+.landing-page { --t-scale: 1.0625; }
+
+.landing-page .text-sm   { font-size: calc(0.875rem * var(--t-scale)); }
+.landing-page .text-base { font-size: calc(1rem * var(--t-scale)); }
+.landing-page .text-lg   { font-size: calc(1.125rem * var(--t-scale)); }
+.landing-page .text-xl   { font-size: calc(1.25rem * var(--t-scale)); }
+.landing-page .text-2xl  { font-size: calc(1.5rem * var(--t-scale)); }
+.landing-page .text-3xl  { font-size: calc(1.875rem * var(--t-scale)); }
+.landing-page .text-4xl  { font-size: calc(2.25rem * var(--t-scale)); }
+.landing-page .text-5xl  { font-size: calc(3rem * var(--t-scale)); }
+.landing-page .text-6xl  { font-size: calc(3.75rem * var(--t-scale)); }
+
+@media (min-width: 640px) {
+  .landing-page .sm\:text-base { font-size: calc(1rem * var(--t-scale)); }
+  .landing-page .sm\:text-lg   { font-size: calc(1.125rem * var(--t-scale)); }
+  .landing-page .sm\:text-xl   { font-size: calc(1.25rem * var(--t-scale)); }
+  .landing-page .sm\:text-2xl  { font-size: calc(1.5rem * var(--t-scale)); }
+  .landing-page .sm\:text-3xl  { font-size: calc(1.875rem * var(--t-scale)); }
+  .landing-page .sm\:text-4xl  { font-size: calc(2.25rem * var(--t-scale)); }
+}
+
+@media (min-width: 768px) {
+  .landing-page .md\:text-base { font-size: calc(1rem * var(--t-scale)); }
+  .landing-page .md\:text-lg   { font-size: calc(1.125rem * var(--t-scale)); }
+  .landing-page .md\:text-xl   { font-size: calc(1.25rem * var(--t-scale)); }
+  .landing-page .md\:text-2xl  { font-size: calc(1.5rem * var(--t-scale)); }
+  .landing-page .md\:text-3xl  { font-size: calc(1.875rem * var(--t-scale)); }
+  .landing-page .md\:text-4xl  { font-size: calc(2.25rem * var(--t-scale)); }
+  .landing-page .md\:text-5xl  { font-size: calc(3rem * var(--t-scale)); }
+  .landing-page .md\:text-6xl  { font-size: calc(3.75rem * var(--t-scale)); }
+}
+
+@media (min-width: 1024px) {
+  .landing-page .lg\:text-lg   { font-size: calc(1.125rem * var(--t-scale)); }
+  .landing-page .lg\:text-xl   { font-size: calc(1.25rem * var(--t-scale)); }
+  .landing-page .lg\:text-2xl  { font-size: calc(1.5rem * var(--t-scale)); }
+  .landing-page .lg\:text-3xl  { font-size: calc(1.875rem * var(--t-scale)); }
+  .landing-page .lg\:text-4xl  { font-size: calc(2.25rem * var(--t-scale)); }
+  .landing-page .lg\:text-5xl  { font-size: calc(3rem * var(--t-scale)); }
+  .landing-page .lg\:text-6xl  { font-size: calc(3.75rem * var(--t-scale)); }
+}
+
 /* Respect users who request reduced motion (WCAG 2.3.3) */
 @media (prefers-reduced-motion: reduce) {
   *,

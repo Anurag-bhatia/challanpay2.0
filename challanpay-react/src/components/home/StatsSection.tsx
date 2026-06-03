@@ -29,7 +29,7 @@ export function StatsSection() {
         <div className="font-display text-2xl sm:text-2xl md:text-3xl font-bold text-primary">
           {stat.number}
         </div>
-        <div className="font-body text-xs sm:text-sm text-text-secondary mt-0.5">
+        <div className="font-body text-sm sm:text-base text-text-secondary mt-0.5">
           {stat.label}
         </div>
       </div>
@@ -47,9 +47,16 @@ export function StatsSection() {
           </div>
         </div>
 
-        {/* Tablet/Desktop: static grid */}
-        <div className="hidden sm:grid sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
-          {stats.map((stat, index) => renderCard(stat, `grid-${index}`))}
+        {/* Tablet/Desktop: wrapped flex centers orphan row */}
+        <div className="hidden sm:flex sm:flex-wrap sm:justify-center gap-4 md:gap-5">
+          {stats.map((stat, index) => (
+            <div
+              key={`grid-${index}`}
+              className="basis-[calc(33.333%-11px)] md:basis-[calc(33.333%-14px)] lg:basis-[calc(25%-15px)]"
+            >
+              {renderCard(stat, `card-${index}`)}
+            </div>
+          ))}
         </div>
       </div>
     </section>

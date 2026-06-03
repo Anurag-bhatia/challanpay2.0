@@ -38,10 +38,11 @@ export function HeroSection() {
     >
       {/* Hero background — desktop only (mobile uses the composite image below) */}
       <div
-        className="hidden md:block absolute inset-0 bg-no-repeat bg-bottom pointer-events-none"
+        className="hidden md:block absolute inset-0 bg-no-repeat pointer-events-none"
         style={{
           backgroundImage: "url('/images/hero-bg.png')",
           backgroundSize: '100% auto',
+          backgroundPosition: '-6vw bottom',
         }}
         aria-hidden="true"
       />
@@ -66,7 +67,7 @@ export function HeroSection() {
 
             {/* Heading */}
             <ScrollReveal delay={0.05}>
-              <h1 className="font-display text-3xl sm:text-4xl md:text-[3.5rem] font-extrabold text-text-primary mb-4 md:mb-6 leading-tight">
+              <h1 className="font-display text-4xl sm:text-5xl md:text-[4.25rem] font-extrabold text-text-primary mb-4 md:mb-6 leading-tight">
                 {t.hero.title}
               </h1>
             </ScrollReveal>
@@ -143,6 +144,15 @@ export function HeroSection() {
                 >
                   {t.hero.checkChallans}
                 </motion.button>
+
+                <div className="mt-0 flex flex-col items-center text-center py-2 px-6 rounded-2xl bg-[radial-gradient(ellipse_65%_90%_at_50%_50%,rgba(8,145,178,0.32)_0%,rgba(8,145,178,0.12)_45%,transparent_75%)]">
+                  <span className="font-display text-2xl md:text-3xl font-bold text-primary">
+                    ₹70 Crore+
+                  </span>
+                  <span className="font-body text-base text-primary-dark mt-0.5">
+                    Savings on Legal Fees
+                  </span>
+                </div>
 
               </div>
             </div>

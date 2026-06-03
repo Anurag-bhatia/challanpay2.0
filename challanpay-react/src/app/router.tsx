@@ -43,6 +43,7 @@ const NewsPage = lazyWithReload(() => import('@/pages/NewsPage').then(m => ({ de
 const FAQPage = lazyWithReload(() => import('@/pages/FAQPage').then(m => ({ default: m.FAQPage })))
 const PrivacyPolicyPage = lazyWithReload(() => import('@/pages/PrivacyPolicyPage').then(m => ({ default: m.PrivacyPolicyPage })))
 const TermsPage = lazyWithReload(() => import('@/pages/TermsPage').then(m => ({ default: m.TermsPage })))
+const RefundPolicyPage = lazyWithReload(() => import('@/pages/RefundPolicyPage').then(m => ({ default: m.RefundPolicyPage })))
 const RoadSmartPartnersPage = lazyWithReload(() => import('@/pages/RoadSmartPartnersPage').then(m => ({ default: m.RoadSmartPartnersPage })))
 const TrackStatusPage = lazyWithReload(() => import('@/pages/TrackStatusPage').then(m => ({ default: m.TrackStatusPage })))
 const ProfilePage = lazyWithReload(() => import('@/pages/ProfilePage').then(m => ({ default: m.ProfilePage })))
@@ -89,6 +90,7 @@ export const router = createBrowserRouter([
       { path: 'faq', element: withSuspense(FAQPage) },
       { path: 'privacy-policy', element: withSuspense(PrivacyPolicyPage) },
       { path: 'terms', element: withSuspense(TermsPage) },
+      { path: 'refund-policy', element: withSuspense(RefundPolicyPage) },
       { path: 'road-smart-partners', element: withSuspense(RoadSmartPartnersPage) },
       { path: 'track-status', element: withSuspense(TrackStatusPage) },
       { path: 'profile', element: withSuspense(ProfilePage) },

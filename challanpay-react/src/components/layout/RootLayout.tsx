@@ -38,11 +38,23 @@ export function RootLayout() {
   }, [showBottomNav])
 
   return (
-    <div className="min-h-screen flex flex-col overflow-x-hidden">
+    <div className="min-h-screen flex flex-col overflow-x-clip">
       <SkipToContent />
       <OfflineBanner />
+      {/* As Covered by NDTV ribbon — sits above the navbar, scrolls away with the page */}
+      <div className="w-full bg-cyan-50 h-9 md:h-10 flex items-center">
+        <div className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 flex items-center justify-center gap-2 md:gap-3">
+          <span className="font-body text-xs md:text-sm font-medium text-text-primary">
+            As Covered by
+          </span>
+          <span className="inline-flex items-baseline gap-1 font-display text-sm md:text-base font-bold tracking-wide">
+            <span className="text-text-primary">NDTV</span>
+            <span className="text-text-primary">India</span>
+          </span>
+        </div>
+      </div>
       <Header />
-      <main id="main" className="flex-1 pt-16">
+      <main id="main" className="flex-1">
         <Outlet />
       </main>
       <Footer />

@@ -44,7 +44,7 @@ export function Header() {
 
   return (
     <>
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border">
+    <header className="sticky top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-[0_2px_2px_rgba(0,0,0,0.08)]">
       <nav className="max-w-[1280px] mx-auto px-6 sm:px-8 lg:px-10 flex items-center justify-between h-20">
         {/* Logo */}
         <Link to={isRSPPage ? '/road-smart-partners' : '/'} className="flex-shrink-0">
@@ -61,7 +61,7 @@ export function Header() {
             <li key={link.href}>
               <Link
                 to={link.href}
-                className="text-sm font-medium text-text-primary hover:text-primary transition-colors flex items-center gap-1.5"
+                className="text-base font-medium text-text-primary hover:text-primary transition-colors flex items-center gap-1.5"
               >
                 {link.label}
                 {link.badge && (

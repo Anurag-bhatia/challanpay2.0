@@ -22,8 +22,8 @@ export function BackedBySection() {
           {[
             { src: '/images/backed-meity.png', alt: 'MeitY - Government of India', size: 'max-h-12 md:max-h-14' },
             { src: '/images/backed-ia.png', alt: 'India Accelerator', size: 'max-h-14 md:max-h-18' },
-            { src: '/images/backed-finvolve.png', alt: 'Finvolve', size: 'max-h-5 md:max-h-6' },
             { src: '/images/backed-zerodha.png', alt: 'Zerodha', size: 'max-h-4 md:max-h-5' },
+            { src: '/images/backed-finvolve.png', alt: 'Finvolve', size: 'max-h-5 md:max-h-6' },
             { src: '/images/backed-turbostart.png', alt: 'TurboStart', size: 'max-h-7 md:max-h-8' },
           ].map((logo, i) => (
             <ScrollReveal key={logo.alt} delay={i * 0.08}>

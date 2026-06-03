@@ -81,7 +81,7 @@ export function HowItWorksAccordion() {
         {/* Desktop layout: accordion + sticky image */}
         <div className="hidden lg:flex flex-row gap-12 items-start">
           {/* Left - Accordion */}
-          <div className="w-full lg:w-1/2 space-y-3">
+          <div className="w-full lg:w-5/12 space-y-3">
             {steps.map((step, index) => (
               <ScrollReveal key={index} delay={index * 0.1}>
                 <div
@@ -144,9 +144,9 @@ export function HowItWorksAccordion() {
           </div>
 
           {/* Right - Image */}
-          <div className="w-full lg:w-1/2 flex items-center justify-center sticky top-24">
+          <div className="w-full lg:w-7/12 flex items-center justify-center sticky top-24">
             <ScrollReveal direction="right">
-              <div className="relative w-full max-w-md mx-auto">
+              <div className="relative w-full max-w-2xl mx-auto">
                 <AnimatePresence mode="wait">
                   <motion.img
                     key={activeStep}
@@ -156,7 +156,7 @@ export function HowItWorksAccordion() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.4 }}
-                    className="w-full h-auto rounded-2xl"
+                    className="w-full aspect-[4/3] object-cover rounded-2xl"
                   />
                 </AnimatePresence>
               </div>

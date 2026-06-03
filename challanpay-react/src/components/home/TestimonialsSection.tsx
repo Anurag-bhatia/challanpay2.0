@@ -83,36 +83,36 @@ export function TestimonialsSection() {
             <div key={index} className="min-w-[85%] snap-center sm:min-w-0">
               <div className="bg-white rounded-2xl p-6 h-full flex flex-col">
                 {/* Header */}
-                <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center gap-3 mb-4">
                   <div
                     className="w-12 h-12 rounded-full bg-cover bg-center flex-shrink-0 border-2 border-primary/20"
                     style={{ backgroundImage: `url('${testimonial.avatar}')` }}
                     role="img"
                     aria-label={`Photo of ${testimonial.name}`}
                   />
-                  <div>
-                    <h4 className="font-display text-base font-semibold text-text-primary">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-display text-base font-semibold text-text-primary truncate">
                       {testimonial.name}
                     </h4>
-                    <p className="font-body text-xs text-text-light">
+                    <p className="font-body text-xs text-text-light truncate">
                       {testimonial.meta}
                     </p>
                   </div>
                 </div>
 
-                {/* Savings badge */}
-                <div className="inline-flex self-start px-3 py-1 rounded-full bg-success/10 text-success text-sm font-semibold font-body mb-3">
-                  {testimonial.savings}
-                </div>
-
-                {/* Stars */}
-                <div className="flex gap-0.5 mb-3">
-                  {Array.from({ length: testimonial.rating }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className="w-4 h-4 fill-amber-400 text-amber-400"
-                    />
-                  ))}
+                {/* Trust signals: stars + savings */}
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <div className="flex gap-0.5">
+                    {Array.from({ length: testimonial.rating }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className="w-4 h-4 fill-amber-400 text-amber-400"
+                      />
+                    ))}
+                  </div>
+                  <span className="inline-flex flex-shrink-0 px-2.5 py-0.5 rounded-full bg-success/10 text-success text-xs font-semibold font-body">
+                    {testimonial.savings}
+                  </span>
                 </div>
 
                 {/* Text */}
