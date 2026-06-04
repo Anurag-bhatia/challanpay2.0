@@ -126,13 +126,13 @@ export function ComparisonSection() {
                     {t.comparison.feature}
                   </th>
                   <th
-                    className="relative text-left font-display font-bold text-white p-5 md:p-6 text-base rounded-t-2xl border-x-2 border-t-2 border-primary shadow-[-10px_0_28px_-10px_rgba(8,145,178,0.35),10px_0_28px_-10px_rgba(8,145,178,0.35)]"
+                    className="relative text-left font-display font-bold text-white pl-5 pr-14 py-5 md:pl-6 md:pr-16 md:py-6 text-base rounded-t-2xl border-x-2 border-t-2 border-primary shadow-[-10px_0_28px_-10px_rgba(8,145,178,0.35),10px_0_28px_-10px_rgba(8,145,178,0.35)]"
                     style={{ background: 'linear-gradient(180deg, #0EA5E9 0%, #0E7490 100%)' }}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 36 36"
-                      className="absolute top-1 right-2 md:top-2 md:right-3 w-12 h-12 md:w-14 md:h-14 drop-shadow-md"
+                      className="absolute top-1 right-2 md:top-2 md:right-3 w-10 h-10 md:w-14 md:h-14 drop-shadow-md"
                       aria-hidden="true"
                     >
                       <g>
