@@ -48,8 +48,8 @@ export function MultiVehicleCTA() {
               {/* Right image */}
               <div className="flex-shrink-0 w-full md:w-auto max-w-[280px] md:max-w-[320px]">
                 <img
-                  src="/images/image-121.png"
-                  alt="Multiple Vehicles Check"
+                  src="/images/multi-vehicle-illustration.png"
+                  alt="Stressed fleet owner with stack of pending challans"
                   className="w-full h-auto rounded-xl"
                 />
               </div>
