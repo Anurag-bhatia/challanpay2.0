@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import confetti from 'canvas-confetti'
 import { toast } from 'sonner'
-import { BadgeCheck, Monitor, Scale, Gift, ArrowLeft, X, ShieldAlert, AlertTriangle, ChevronDown, Info, Check } from 'lucide-react'
+import { Zap, Gift, ArrowLeft, X, ShieldAlert, AlertTriangle, ChevronDown, Info, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PageTransition } from '@/components/shared/PageTransition'
 import { Skeleton } from '@/components/shared/Skeleton'
@@ -17,8 +17,6 @@ import {
   PLEDGE_REWARD,
 } from '@/stores/challanStore'
 
-type ResolutionType = 'online' | 'court'
-
 const formatINR = (n: number) => n.toLocaleString('en-IN')
 
 export function PaymentPage() {
@@ -27,20 +25,50 @@ export function PaymentPage() {
 
   const challans = useChallanStore((s) => s.challans)
   const selectedChallanIds = useChallanStore((s) => s.selectedChallanIds)
+  const tatkalChallanIds = useChallanStore((s) => s.tatkalChallanIds)
+  const toggleTatkalChallan = useChallanStore((s) => s.toggleTatkalChallan)
+  const setTatkalChallanIds = useChallanStore((s) => s.setTatkalChallanIds)
   const recordTransaction = useChallanStore((s) => s.recordTransaction)
   const markSubmitted = useChallanStore((s) => s.markSubmitted)
   const { state: pageState } = usePageState()
 
-  const summary = useMemo(() => {
+  const selectedChallans = useMemo(() => {
     const idSet = new Set(selectedChallanIds)
-    const selected = challans.filter((c) => idSet.has(c.id))
-    const online = selected.filter((c) => c.type === 'online')
-    const court = selected.filter((c) => c.type === 'court')
+    const typeOrder = { online: 0, court: 1 }
+    return challans
+      .filter((c) => idSet.has(c.id))
+      .slice()
+      .sort((a, b) => typeOrder[a.type] - typeOrder[b.type])
+  }, [challans, selectedChallanIds])
+
+  const activeTatkalIds = useMemo(() => {
+    const selSet = new Set(selectedChallanIds)
+    const tatkalSet = new Set(tatkalChallanIds)
+    return new Set(
+      selectedChallans
+        .filter((c) => tatkalSet.has(c.id) && selSet.has(c.id))
+        .map((c) => c.id)
+    )
+  }, [selectedChallans, selectedChallanIds, tatkalChallanIds])
+
+  const eligibleIds = useMemo(
+    () => selectedChallans.map((c) => c.id),
+    [selectedChallans]
+  )
+
+  const summary = useMemo(() => {
+    const online = selectedChallans.filter((c) => c.type === 'online')
+    const court = selectedChallans.filter((c) => c.type === 'court')
     const onlineAmount = online.reduce((sum, c) => sum + c.amount, 0)
     const courtAmount = court.reduce((sum, c) => sum + c.amount, 0)
     const onlineFee = online.length * ONLINE_CONVENIENCE_FEE
     const courtFee = court.length * COURT_CONVENIENCE_FEE
     const subtotal = onlineAmount + courtAmount + onlineFee + courtFee
+
+    const tatkalDeferredAmount = selectedChallans
+      .filter((c) => activeTatkalIds.has(c.id))
+      .reduce((sum, c) => sum + c.amount, 0)
+
     return {
       onlineCount: online.length,
       courtCount: court.length,
@@ -49,20 +77,25 @@ export function PaymentPage() {
       onlineFee,
       courtFee,
       subtotal,
+      tatkalEligibleCount: eligibleIds.length,
+      tatkalDeferredAmount,
     }
-  }, [challans, selectedChallanIds])
+  }, [selectedChallans, activeTatkalIds, eligibleIds])
 
-  const RESOLUTION_TABS = [
-    { id: 'online' as const, label: t.payment.payAndClose, icon: BadgeCheck, description: t.payment.instantPayment, tags: [t.payment.instantBenefit, t.payment.fortyFiveDays], iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-200' },
-    { id: 'court' as const, label: t.payment.contestAndWait, icon: Scale, description: t.payment.legalRepresentation, tags: [t.payment.refundApplicable, t.payment.sixtyDays], iconBg: 'bg-gray-100 text-gray-600 border border-gray-200' },
-  ]
-  const [activeTab, setActiveTab] = useState<ResolutionType>('online')
+  const hasTatkalEligible = eligibleIds.length > 0
+  const isTatkal = activeTatkalIds.size > 0
+  const allEligibleSelected = hasTatkalEligible && eligibleIds.every((id) => activeTatkalIds.has(id))
+  const someEligibleSelected = activeTatkalIds.size > 0 && !allEligibleSelected
+
   const [pledgeChecked, setPledgeChecked] = useState(false)
   const [showBackConfirm, setShowBackConfirm] = useState(false)
-  const [legalChargesInfo, setLegalChargesInfo] = useState<ResolutionType | null>(null)
-  const [resolutionInfo, setResolutionInfo] = useState<ResolutionType | null>(null)
+  const [legalChargesInfo, setLegalChargesInfo] = useState<'online' | 'court' | null>(null)
+  const [resolutionInfo, setResolutionInfo] = useState<'regular' | 'tatkal' | null>(null)
 
-  const grandTotal = pledgeChecked ? Math.max(0, summary.subtotal - PLEDGE_REWARD) : summary.subtotal
+  const pledgeActive = pledgeChecked && !isTatkal
+  const payNowSubtotal = isTatkal ? summary.subtotal - summary.tatkalDeferredAmount : summary.subtotal
+  const payNowTotal = pledgeActive ? Math.max(0, payNowSubtotal - PLEDGE_REWARD) : payNowSubtotal
+  const payLaterTotal = isTatkal ? summary.tatkalDeferredAmount : 0
   const selectedCount = selectedChallanIds.length
 
   useModalA11y(resolutionInfo !== null, () => setResolutionInfo(null))
@@ -88,7 +121,7 @@ export function PaymentPage() {
 
   const handlePayment = () => {
     const txnId = `TXN${Date.now()}`
-    recordTransaction(txnId, grandTotal, selectedChallanIds.length)
+    recordTransaction(txnId, payNowTotal, selectedChallanIds.length)
     markSubmitted(selectedChallanIds)
     navigate('/payment/completed')
   }
@@ -102,9 +135,14 @@ export function PaymentPage() {
     navigate(-1)
   }
 
+  const handleTatkalToggleAll = () => {
+    if (!hasTatkalEligible) return
+    setTatkalChallanIds(allEligibleSelected ? [] : eligibleIds)
+  }
+
   return (
     <PageTransition>
-      {/* Resolution Option Info Modal */}
+      {/* Resolution Info Modal */}
       {resolutionInfo && (
         <div
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4"
@@ -124,55 +162,45 @@ export function PaymentPage() {
 
             <div className={cn(
               'pt-8 pb-4 px-6 text-left',
-              resolutionInfo === 'online'
-                ? 'bg-gradient-to-b from-cyan-50 via-cyan-50/40 to-white'
+              resolutionInfo === 'regular'
+                ? 'bg-gradient-to-b from-emerald-50 via-emerald-50/40 to-white'
                 : 'bg-gradient-to-b from-amber-50 via-amber-50/40 to-white'
             )}>
-              <div className={cn(
-                'w-11 h-11 rounded-xl flex items-center justify-center mb-3 border',
-                resolutionInfo === 'online' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-amber-50 text-amber-600 border-amber-200'
-              )}>
-                {resolutionInfo === 'online' ? <BadgeCheck className="w-5 h-5" /> : <Scale className="w-5 h-5" />}
+              <div className="w-14 h-14 flex items-center justify-center mb-3">
+                <img
+                  src={resolutionInfo === 'regular' ? '/images/resolution-regular.png' : '/images/resolution-tatkal.png'}
+                  alt=""
+                  aria-hidden
+                  className="w-full h-full object-contain"
+                />
               </div>
               <h3 className="font-display text-xl font-bold text-text-primary">
-                {resolutionInfo === 'online' ? t.payment.payAndCloseInfoTitle : t.payment.contestAndWaitInfoTitle}
+                {resolutionInfo === 'regular' ? t.payment.regularInfoTitle : t.payment.tatkalInfoTitle}
               </h3>
+              <p className="text-sm text-text-secondary mt-1.5">
+                {resolutionInfo === 'regular' ? t.payment.regularInfoDesc : t.payment.tatkalInfoDesc}
+              </p>
             </div>
 
             <div className="px-6 pt-4 pb-6">
               <div className="space-y-2.5 mb-5">
-                {(resolutionInfo === 'online'
-                  ? [
-                      t.payment.payAndCloseBenefit1,
-                      t.payment.payAndCloseBenefit2,
-                      t.payment.payAndCloseBenefit3,
-                      t.payment.payAndCloseBenefit4,
-                    ]
-                  : [
-                      t.payment.contestAndWaitBenefit1,
-                      t.payment.contestAndWaitBenefit2,
-                      t.payment.contestAndWaitBenefit3,
-                      t.payment.contestAndWaitBenefit4,
-                    ]
+                {(resolutionInfo === 'regular'
+                  ? [t.payment.regularBenefit1, t.payment.regularBenefit2, t.payment.regularBenefit3, t.payment.regularBenefit4]
+                  : [t.payment.tatkalBenefit1, t.payment.tatkalBenefit2, t.payment.tatkalBenefit3, t.payment.tatkalBenefit4]
                 ).map((item) => (
                   <div
                     key={item}
                     className={cn(
                       'flex items-center gap-3 p-3 rounded-xl',
-                      resolutionInfo === 'online' ? 'bg-emerald-50/70' : 'bg-amber-50/70'
+                      resolutionInfo === 'regular' ? 'bg-emerald-50/70' : 'bg-amber-50/70'
                     )}
                   >
-                    <div
-                      className={cn(
-                        'w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0',
-                        resolutionInfo === 'online' ? 'bg-emerald-100' : 'bg-amber-100'
-                      )}
-                    >
+                    <div className={cn(
+                      'w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0',
+                      resolutionInfo === 'regular' ? 'bg-emerald-100' : 'bg-amber-100'
+                    )}>
                       <Check
-                        className={cn(
-                          'w-4 h-4',
-                          resolutionInfo === 'online' ? 'text-emerald-600' : 'text-amber-600'
-                        )}
+                        className={cn('w-4 h-4', resolutionInfo === 'regular' ? 'text-emerald-600' : 'text-amber-600')}
                         strokeWidth={3}
                       />
                     </div>
@@ -316,104 +344,138 @@ export function PaymentPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6 lg:gap-10">
-          {/* Left: Resolution Options */}
+          {/* Left: Selected Challans + Pledge */}
           <div className="space-y-4">
-            {/* Resolution Tabs */}
-            <div className="space-y-4">
-              {pageState === 'loading' && (
-                <>
-                  {[0, 1].map((i) => (
-                    <div key={i} className="bg-white rounded-xl p-3.5 sm:p-4 flex items-start gap-3 sm:gap-4">
-                      <Skeleton className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg" />
-                      <div className="flex-1 space-y-2">
-                        <Skeleton className="h-4 w-32" />
-                        <Skeleton className="h-3 w-48" />
-                        <div className="flex gap-1.5">
-                          <Skeleton className="h-4 w-20 rounded-full" />
-                          <Skeleton className="h-4 w-24 rounded-full" />
-                        </div>
-                      </div>
-                      <Skeleton className="w-6 h-6 rounded-md" />
-                    </div>
-                  ))}
-                </>
-              )}
-              {pageState !== 'loading' && RESOLUTION_TABS.map((tab) => (
-                <div
-                  key={tab.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setActiveTab(tab.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      setActiveTab(tab.id)
-                    }
-                  }}
-                  className={cn(
-                    'relative w-full flex items-start gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-xl border text-left transition-all cursor-pointer bg-white outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
-                    activeTab === tab.id
-                      ? 'border-primary shadow-md'
-                      : 'border-border shadow-sm hover:border-primary/30 hover:shadow-md'
-                  )}
-                >
-                  <div className={cn(
-                    'w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0',
-                    tab.iconBg
-                  )}>
-                    <tab.icon className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <p className="font-display font-semibold text-sm text-text-primary">{tab.label}</p>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setResolutionInfo(tab.id)
-                        }}
-                        aria-label={`More info about ${tab.label}`}
-                        className="text-text-light hover:text-primary transition-colors flex items-center justify-center p-2.5 -m-2.5"
-                      >
-                        <Info className="w-3.5 h-3.5" />
-                      </button>
-                      {tab.id === 'online' && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-                          <BadgeCheck className="w-3 h-3" aria-hidden />
-                          {t.payment.recommended}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-text-secondary mt-0.5">{tab.description}</p>
-                    <div className="flex flex-wrap gap-1.5 mt-4">
-                      {tab.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className={cn(
-                            'text-xs font-semibold px-2.5 py-1 rounded-full',
-                            activeTab === tab.id && tab.id === 'online'
-                              ? tag === t.payment.instantBenefit
-                                ? 'bg-amber-100 text-amber-800'
-                                : 'bg-primary/10 text-primary'
-                              : 'bg-gray-100 text-text-secondary'
-                          )}
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className={cn(
-                    'w-6 h-6 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors',
-                    activeTab === tab.id ? 'border-primary bg-primary' : 'border-gray-300'
-                  )}>
-                    {activeTab === tab.id && <Check className="w-4 h-4 text-white" strokeWidth={3} />}
-                  </div>
-                </div>
-              ))}
-            </div>
+            {/* Mobile-only: Resolution info buttons */}
+            {pageState !== 'loading' && (
+              <div className="lg:hidden grid grid-cols-2 gap-2">
+                {(['regular', 'tatkal'] as const).map((id) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setResolutionInfo(id)}
+                    className={cn(
+                      'flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border bg-white shadow-sm text-left active:scale-[0.98] transition-transform',
+                      id === 'regular' ? 'border-emerald-200' : 'border-amber-200'
+                    )}
+                  >
+                    <span className="inline-flex items-center gap-2 min-w-0">
+                      <img
+                        src={id === 'regular' ? '/images/resolution-regular.png' : '/images/resolution-tatkal.png'}
+                        alt=""
+                        aria-hidden
+                        className="w-7 h-7 object-contain flex-shrink-0"
+                      />
+                      <span className="font-display font-semibold text-sm text-text-primary truncate">
+                        {id === 'regular' ? t.payment.regular : t.payment.tatkal}
+                      </span>
+                    </span>
+                    <Info className="w-4 h-4 text-text-light flex-shrink-0" />
+                  </button>
+                ))}
+              </div>
+            )}
 
-            {/* Pledge Section */}
+            {/* Selected Challans */}
+            {pageState === 'loading' ? (
+              <div className="bg-white rounded-xl p-4 sm:p-5 space-y-3">
+                <Skeleton className="h-4 w-40" />
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-3 w-32" />
+                    <Skeleton className="h-3 w-16 rounded-full" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-xl border border-border shadow-sm p-4 sm:p-5">
+                <p className="font-display font-semibold text-sm text-text-primary mb-3">
+                  {`${selectedCount} ${t.payment.selectedChallansTitle}`}
+                </p>
+                <div className="flex items-center justify-end gap-2 pb-3 mb-1 border-b border-border/60">
+                  <label className={cn(
+                    'inline-flex items-center gap-2 select-none',
+                    hasTatkalEligible ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'
+                  )}>
+                    <span className="inline-flex items-center gap-1.5 text-sm font-bold text-text-primary">
+                      <Zap className="w-4 h-4 text-amber-600" aria-hidden />
+                      {t.payment.payInTatkal}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setResolutionInfo('tatkal')
+                      }}
+                      aria-label={t.payment.tatkalInfoTitle}
+                      className="text-text-light hover:text-primary transition-colors flex items-center justify-center p-2.5 -m-2.5"
+                    >
+                      <Info className="w-4 h-4" />
+                    </button>
+                    <input
+                      type="checkbox"
+                      checked={allEligibleSelected}
+                      ref={(el) => {
+                        if (el) el.indeterminate = someEligibleSelected
+                      }}
+                      disabled={!hasTatkalEligible}
+                      onChange={handleTatkalToggleAll}
+                      className="w-6 h-6 rounded border-2 border-gray-300 text-primary accent-primary focus:ring-primary ml-1"
+                    />
+                  </label>
+                </div>
+                <ul className="divide-y divide-border/60">
+                  {selectedChallans.map((c, index) => {
+                    const isRowTatkal = activeTatkalIds.has(c.id)
+                    return (
+                      <li key={c.id} className="py-4 first:pt-2 last:pb-2">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-display text-xs font-semibold text-text-light w-5 flex-shrink-0">
+                                {index + 1}.
+                              </span>
+                              <span className="font-mono text-xs text-text-light">
+                                {c.challanNumber.length > 14 ? `${c.challanNumber.slice(0, 14)}…` : c.challanNumber}
+                              </span>
+                              <span className="font-display font-semibold text-sm text-text-primary whitespace-nowrap">
+                                ₹{formatINR(c.amount)}
+                              </span>
+                              <span
+                                className={cn(
+                                  'text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-full',
+                                  c.type === 'online'
+                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                    : 'bg-gray-100 text-gray-700 border border-gray-200'
+                                )}
+                              >
+                                {c.type === 'online' ? t.payment.onlineTag : t.payment.courtTag}
+                              </span>
+                            </div>
+                            <p className="text-xs text-text-secondary mt-1.5 ml-7 line-clamp-2">{c.violation}</p>
+                          </div>
+                          <label
+                            className="inline-flex items-center cursor-pointer select-none flex-shrink-0 mt-0.5 p-1 -m-1"
+                            title={t.payment.payInTatkal}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isRowTatkal}
+                              onChange={() => toggleTatkalChallan(c.id)}
+                              className="w-6 h-6 rounded border-2 border-gray-300 text-primary accent-primary focus:ring-primary"
+                              aria-label={`${t.payment.payInTatkal} — ${c.challanNumber}`}
+                            />
+                          </label>
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            )}
+
+            {/* Pledge Section — Regular only */}
             {pageState === 'loading' ? (
               <div className="bg-white rounded-xl p-4 sm:p-5 space-y-3">
                 <div className="flex items-start gap-3">
@@ -425,7 +487,7 @@ export function PaymentPage() {
                 </div>
                 <Skeleton className="h-12 w-full rounded-lg" />
               </div>
-            ) : (
+            ) : !isTatkal ? (
             <div className="bg-white rounded-xl border border-border shadow-sm p-4 sm:p-5">
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
@@ -453,7 +515,7 @@ export function PaymentPage() {
                 </div>
               </div>
             </div>
-            )}
+            ) : null}
           </div>
 
           {/* Right: Payment Summary (desktop only) */}
@@ -484,80 +546,45 @@ export function PaymentPage() {
                 {`${selectedCount} ${selectedCount === 1 ? 'Challan' : 'Challans'} selected for settlement`}
               </h3>
 
-              {/* Trust banner */}
-              <div className="flex items-center justify-between bg-cyan-50 rounded-lg px-3.5 py-2.5 mb-4">
-                <span className="text-xs font-medium text-text-secondary">{t.payment.trustBanner}</span>
-                <span className="text-xl">💰</span>
-              </div>
-
               <hr className="border-border mb-4" />
 
-              <div className="space-y-3.5">
-                {/* Online Challan */}
-                {summary.onlineCount > 0 && (
-                  <div className="space-y-0.5">
-                    <div className="flex justify-between text-[13px]">
-                      <span className="font-display font-semibold text-text-primary">{`${t.payment.onlineChallan} (${summary.onlineCount})`}</span>
-                      <span className="font-display font-semibold text-text-primary">₹{formatINR(summary.onlineAmount)}</span>
-                    </div>
-                    <div className="flex justify-between text-[13px]">
-                      <span className="text-text-light inline-flex items-center gap-1">
-                        {t.payment.convenienceFee} <span className="text-text-light/70">{`(${summary.onlineCount} x ${ONLINE_CONVENIENCE_FEE})`}</span>
-                        <button
-                          type="button"
-                          onClick={() => setLegalChargesInfo('online')}
-                          aria-label={t.payment.onlineLegalFeeTitle}
-                          className="inline-flex items-center justify-center w-9 h-9 -m-2.5 rounded-full text-text-light/80 hover:text-primary transition-colors"
-                        >
-                          <Info className="w-3.5 h-3.5" />
-                        </button>
-                      </span>
-                      <span className="font-medium text-text-light">₹{formatINR(summary.onlineFee)}</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Court Challan */}
-                {summary.courtCount > 0 && (
-                  <div className="space-y-0.5">
-                    <div className="flex justify-between text-[13px]">
-                      <span className="font-display font-semibold text-text-primary">{`${t.payment.courtChallan} (${summary.courtCount})`}</span>
-                      <span className="font-display font-semibold text-text-primary">₹{formatINR(summary.courtAmount)}</span>
-                    </div>
-                    <div className="flex justify-between text-[13px]">
-                      <span className="text-text-light inline-flex items-center gap-1">
-                        {t.payment.convenienceFee} <span className="text-text-light/70">{`(${summary.courtCount} x ${COURT_CONVENIENCE_FEE})`}</span>
-                        <button
-                          type="button"
-                          onClick={() => setLegalChargesInfo('court')}
-                          aria-label={t.payment.courtLegalFeeTitle}
-                          className="inline-flex items-center justify-center w-9 h-9 -m-2.5 rounded-full text-text-light/80 hover:text-primary transition-colors"
-                        >
-                          <Info className="w-3.5 h-3.5" />
-                        </button>
-                      </span>
-                      <span className="font-medium text-text-light">₹{formatINR(summary.courtFee)}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <SummaryBreakdown
+                summary={summary}
+                selectedChallans={selectedChallans}
+                isTatkal={isTatkal}
+                activeTatkalIds={activeTatkalIds}
+                t={t}
+                onOnlineFeeInfo={() => setLegalChargesInfo('online')}
+                onCourtFeeInfo={() => setLegalChargesInfo('court')}
+              />
 
               {/* Pledge Reward */}
-              {pledgeChecked && (
+              {pledgeActive && (
                 <div className="flex justify-between text-sm mt-3.5 bg-emerald-50 -mx-6 px-6 py-2.5">
                   <span className="font-display font-semibold text-success">{t.payment.pledgeReward}</span>
                   <span className="font-display font-semibold text-success">-₹{formatINR(PLEDGE_REWARD)}</span>
                 </div>
               )}
 
-              {/* Grand Total */}
+              {/* Pay Now / Pay Later totals */}
               <hr className="border-border my-3.5" />
               <div className="flex justify-between items-baseline">
-                <span className="font-display text-[15px] font-bold text-text-primary">{t.payment.grandTotal}</span>
+                <span className="font-display text-[15px] font-bold text-text-primary">
+                  {isTatkal ? t.payment.payNow : t.payment.grandTotal}
+                </span>
                 <span className="font-display text-lg font-bold text-text-primary">
-                  ₹{formatINR(grandTotal)}
+                  ₹{formatINR(payNowTotal)}
                 </span>
               </div>
+              {isTatkal && (
+                <div className="mt-2 rounded-lg bg-amber-50/70 border border-amber-100 px-3 py-2.5">
+                  <div className="flex justify-between items-baseline">
+                    <span className="font-display text-sm font-semibold text-amber-800">{t.payment.payLater}</span>
+                    <span className="font-display text-sm font-bold text-amber-800">₹{formatINR(payLaterTotal)}</span>
+                  </div>
+                  <p className="text-[11px] text-amber-700/80 mt-0.5">{t.payment.payLaterHelp}</p>
+                </div>
+              )}
 
               <button
                 onClick={handlePayment}
@@ -588,11 +615,14 @@ export function PaymentPage() {
         <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.08)] px-4 py-3 safe-bottom">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-xs text-text-light">{t.payment.grandTotal}</p>
+              <p className="text-xs text-text-light">{isTatkal ? t.payment.payNow : t.payment.grandTotal}</p>
               <p className="font-display text-lg font-bold text-text-primary">
-                ₹{formatINR(grandTotal)}
+                ₹{formatINR(payNowTotal)}
               </p>
-              {pledgeChecked && (
+              {isTatkal && (
+                <p className="text-[10px] text-amber-700 font-medium">{`+ ₹${formatINR(payLaterTotal)} ${t.payment.payLater}`}</p>
+              )}
+              {pledgeActive && (
                 <p className="text-[10px] text-success font-medium">{t.payment.savedAmount}</p>
               )}
             </div>
@@ -632,63 +662,19 @@ export function PaymentPage() {
             <ChevronDown className="w-5 h-5 text-text-light transition-transform [[open]>&]:rotate-180" />
           </summary>
           <div className="px-4 pb-4 space-y-3">
-            {/* Trust banner */}
-            <div className="flex items-center justify-between bg-cyan-50 rounded-lg px-3 py-2">
-              <span className="text-[11px] font-medium text-text-secondary">{t.payment.trustBanner}</span>
-              <span className="text-lg">💰</span>
-            </div>
-
             <hr className="border-border" />
 
-            {/* Online Challan */}
-            {summary.onlineCount > 0 && (
-              <div className="space-y-0.5">
-                <div className="flex justify-between text-[13px]">
-                  <span className="font-display font-semibold text-text-primary">{`${t.payment.onlineChallan} (${summary.onlineCount})`}</span>
-                  <span className="font-display font-semibold text-text-primary">₹{formatINR(summary.onlineAmount)}</span>
-                </div>
-                <div className="flex justify-between text-[13px]">
-                  <span className="text-text-light inline-flex items-center gap-1">
-                    {t.payment.convenienceFee} <span className="text-text-light/70">{`(${summary.onlineCount} x ${ONLINE_CONVENIENCE_FEE})`}</span>
-                    <button
-                      type="button"
-                      onClick={() => setLegalChargesInfo('online')}
-                      aria-label={t.payment.onlineLegalFeeTitle}
-                      className="inline-flex items-center justify-center w-9 h-9 -m-2.5 rounded-full text-text-light/80 hover:text-primary transition-colors"
-                    >
-                      <Info className="w-3.5 h-3.5" />
-                    </button>
-                  </span>
-                  <span className="font-medium text-text-light">₹{formatINR(summary.onlineFee)}</span>
-                </div>
-              </div>
-            )}
+            <SummaryBreakdown
+              summary={summary}
+              selectedChallans={selectedChallans}
+              isTatkal={isTatkal}
+              activeTatkalIds={activeTatkalIds}
+              t={t}
+              onOnlineFeeInfo={() => setLegalChargesInfo('online')}
+              onCourtFeeInfo={() => setLegalChargesInfo('court')}
+            />
 
-            {/* Court Challan */}
-            {summary.courtCount > 0 && (
-              <div className="space-y-0.5">
-                <div className="flex justify-between text-[13px]">
-                  <span className="font-display font-semibold text-text-primary">{`${t.payment.courtChallan} (${summary.courtCount})`}</span>
-                  <span className="font-display font-semibold text-text-primary">₹{formatINR(summary.courtAmount)}</span>
-                </div>
-                <div className="flex justify-between text-[13px]">
-                  <span className="text-text-light inline-flex items-center gap-1">
-                    {t.payment.convenienceFee} <span className="text-text-light/70">{`(${summary.courtCount} x ${COURT_CONVENIENCE_FEE})`}</span>
-                    <button
-                      type="button"
-                      onClick={() => setLegalChargesInfo('court')}
-                      aria-label={t.payment.courtLegalFeeTitle}
-                      className="inline-flex items-center justify-center w-9 h-9 -m-2.5 rounded-full text-text-light/80 hover:text-primary transition-colors"
-                    >
-                      <Info className="w-3.5 h-3.5" />
-                    </button>
-                  </span>
-                  <span className="font-medium text-text-light">₹{formatINR(summary.courtFee)}</span>
-                </div>
-              </div>
-            )}
-
-            {pledgeChecked && (
+            {pledgeActive && (
               <div className="flex justify-between text-sm bg-emerald-50 -mx-4 px-4 py-2.5">
                 <span className="font-display font-semibold text-success">{t.payment.pledgeReward}</span>
                 <span className="font-display font-semibold text-success">-₹{formatINR(PLEDGE_REWARD)}</span>
@@ -697,15 +683,123 @@ export function PaymentPage() {
 
             <hr className="border-border" />
             <div className="flex justify-between items-baseline">
-              <span className="font-display text-sm font-bold text-text-primary">{t.payment.grandTotal}</span>
+              <span className="font-display text-sm font-bold text-text-primary">
+                {isTatkal ? t.payment.payNow : t.payment.grandTotal}
+              </span>
               <span className="font-display text-base font-bold text-text-primary">
-                ₹{formatINR(grandTotal)}
+                ₹{formatINR(payNowTotal)}
               </span>
             </div>
+            {isTatkal && (
+              <div className="rounded-lg bg-amber-50/70 border border-amber-100 px-3 py-2.5">
+                <div className="flex justify-between items-baseline">
+                  <span className="font-display text-sm font-semibold text-amber-800">{t.payment.payLater}</span>
+                  <span className="font-display text-sm font-bold text-amber-800">₹{formatINR(payLaterTotal)}</span>
+                </div>
+                <p className="text-[11px] text-amber-700/80 mt-0.5">{t.payment.payLaterHelp}</p>
+              </div>
+            )}
           </div>
         </details>
         )}
       </div>
     </PageTransition>
+  )
+}
+
+type SummaryBreakdownProps = {
+  summary: {
+    onlineCount: number
+    courtCount: number
+    onlineAmount: number
+    courtAmount: number
+    onlineFee: number
+    courtFee: number
+    tatkalDeferredAmount: number
+  }
+  selectedChallans: Array<{
+    id: string
+    amount: number
+    type: 'online' | 'court'
+  }>
+  isTatkal: boolean
+  activeTatkalIds: Set<string>
+  t: ReturnType<typeof useTranslation>['t']
+  onOnlineFeeInfo: () => void
+  onCourtFeeInfo: () => void
+}
+
+function SummaryBreakdown({ summary, selectedChallans, isTatkal, activeTatkalIds, t, onOnlineFeeInfo, onCourtFeeInfo }: SummaryBreakdownProps) {
+  const onlineEligibleAmount = selectedChallans
+    .filter((c) => c.type === 'online' && activeTatkalIds.has(c.id))
+    .reduce((s, c) => s + c.amount, 0)
+  const courtEligibleAmount = selectedChallans
+    .filter((c) => c.type === 'court' && activeTatkalIds.has(c.id))
+    .reduce((s, c) => s + c.amount, 0)
+  const onlineNowAmount = summary.onlineAmount - onlineEligibleAmount
+  const courtNowAmount = summary.courtAmount - courtEligibleAmount
+
+  return (
+    <div className="space-y-3.5">
+      {/* Online Challan */}
+      {summary.onlineCount > 0 && (
+        <div className="space-y-0.5">
+          <div className="flex justify-between text-[13px]">
+            <span className="font-display font-semibold text-text-primary">{`${t.payment.onlineChallan} (${summary.onlineCount})`}</span>
+            <span className="font-display font-semibold text-text-primary">₹{formatINR(onlineNowAmount)}</span>
+          </div>
+          {isTatkal && onlineEligibleAmount > 0 && (
+            <div className="flex justify-between text-[12px]">
+              <span className="text-amber-700/90">{`${t.payment.payLater}: ${t.payment.onlineChallan}`}</span>
+              <span className="font-medium text-amber-700/90">₹{formatINR(onlineEligibleAmount)}</span>
+            </div>
+          )}
+          <div className="flex justify-between text-[13px]">
+            <span className="text-text-light inline-flex items-center gap-1">
+              {t.payment.convenienceFee} <span className="text-text-light/70">{`(${summary.onlineCount} x ${ONLINE_CONVENIENCE_FEE})`}</span>
+              <button
+                type="button"
+                onClick={onOnlineFeeInfo}
+                aria-label={t.payment.onlineLegalFeeTitle}
+                className="inline-flex items-center justify-center w-9 h-9 -m-2.5 rounded-full text-text-light/80 hover:text-primary transition-colors"
+              >
+                <Info className="w-3.5 h-3.5" />
+              </button>
+            </span>
+            <span className="font-medium text-text-light">₹{formatINR(summary.onlineFee)}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Court Challan */}
+      {summary.courtCount > 0 && (
+        <div className="space-y-0.5">
+          <div className="flex justify-between text-[13px]">
+            <span className="font-display font-semibold text-text-primary">{`${t.payment.courtChallan} (${summary.courtCount})`}</span>
+            <span className="font-display font-semibold text-text-primary">₹{formatINR(courtNowAmount)}</span>
+          </div>
+          {isTatkal && courtEligibleAmount > 0 && (
+            <div className="flex justify-between text-[12px]">
+              <span className="text-amber-700/90">{`${t.payment.payLater}: ${t.payment.courtChallan}`}</span>
+              <span className="font-medium text-amber-700/90">₹{formatINR(courtEligibleAmount)}</span>
+            </div>
+          )}
+          <div className="flex justify-between text-[13px]">
+            <span className="text-text-light inline-flex items-center gap-1">
+              {t.payment.convenienceFee} <span className="text-text-light/70">{`(${summary.courtCount} x ${COURT_CONVENIENCE_FEE})`}</span>
+              <button
+                type="button"
+                onClick={onCourtFeeInfo}
+                aria-label={t.payment.courtLegalFeeTitle}
+                className="inline-flex items-center justify-center w-9 h-9 -m-2.5 rounded-full text-text-light/80 hover:text-primary transition-colors"
+              >
+                <Info className="w-3.5 h-3.5" />
+              </button>
+            </span>
+            <span className="font-medium text-text-light">₹{formatINR(summary.courtFee)}</span>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }

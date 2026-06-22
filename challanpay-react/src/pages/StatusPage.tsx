@@ -27,10 +27,10 @@ interface PaidChallan {
 }
 
 const MOCK_CHALLANS: Challan[] = [
-  { id: '1', challanNumber: 'UP40838230627114376', amount: 2000, violation: 'B[2019][driver] (driving vehicle-other than two wheeler in contravention of section 3 or section 4)-drives vehicle without holding driving license.', date: '27 Jun 2023', location: 'NH-44, Gurgaon, Haryana - 122001', type: 'online', pendingSince: '24 months' },
+  { id: '1', challanNumber: 'UP40838230627114376', amount: 2000, violation: 'B[2019][driver] (driving vehicle-other than two wheeler in contravention of section 3 or section 4)-drives vehicle without holding driving license.', date: '27 Jun 2023', location: 'NH-44, Gurgaon, Haryana - 122001', type: 'online', pendingSince: '24 months', tatkalEligible: true },
   { id: '2', challanNumber: 'DL01234567890123456', amount: 5000, violation: 'Disobedience of any direction or obstruction of any function by a driver', date: '15 Jul 2023', location: 'Outer Ring Road, near Dhaula Kuan, New Delhi', type: 'court', pendingSince: '23 months' },
-  { id: '3', challanNumber: 'HR26838230627114377', amount: 1000, violation: 'No Helmet', date: '03 Aug 2023', location: 'Sector 29 Market, Gurugram', type: 'online', pendingSince: '22 months' },
-  { id: '4', challanNumber: 'DL08838230627114378', amount: 2500, violation: 'Improper Parking', date: '11 Sep 2023', location: 'Connaught Place, New Delhi', type: 'online', pendingSince: '20 months' },
+  { id: '3', challanNumber: 'HR26838230627114377', amount: 1000, violation: 'No Helmet', date: '03 Aug 2023', location: 'Sector 29 Market, Gurugram', type: 'online', pendingSince: '22 months', tatkalEligible: true },
+  { id: '4', challanNumber: 'DL08838230627114378', amount: 2500, violation: 'Improper Parking', date: '11 Sep 2023', location: 'Connaught Place, New Delhi', type: 'online', pendingSince: '20 months', tatkalEligible: true },
   { id: '5', challanNumber: 'UP16838230627114379', amount: 10000, violation: 'Driving under the influence of alcohol exceeding permissible blood-alcohol concentration limits', date: '22 Oct 2023', location: 'Greater Noida Expressway, near Pari Chowk', type: 'court', pendingSince: '19 months' },
   { id: '6', challanNumber: 'HR26838230627114380', amount: 1500, violation: 'Without Seatbelt', date: '05 Nov 2023', location: 'NH-8, Manesar', type: 'online', pendingSince: '18 months' },
 ]

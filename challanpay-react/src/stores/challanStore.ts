@@ -10,6 +10,7 @@ export interface ChallanItem {
   location: string
   type: 'online' | 'court'
   pendingSince?: string
+  tatkalEligible?: boolean
 }
 
 export const ONLINE_CONVENIENCE_FEE = 200
@@ -25,11 +26,14 @@ interface ChallanState {
   lastTransactionChallanCount: number | null
   pledgeConfettiShown: boolean
   activeTab: 'pending' | 'paid'
+  tatkalChallanIds: string[]
   setChallans: (challans: ChallanItem[]) => void
   toggleChallan: (id: string) => void
   selectAll: (ids: string[]) => void
   clearSelection: () => void
   setActiveTab: (tab: 'pending' | 'paid') => void
+  toggleTatkalChallan: (id: string) => void
+  setTatkalChallanIds: (ids: string[]) => void
   recordTransaction: (id: string, amount: number, challanCount: number) => void
   markSubmitted: (ids: string[]) => void
   markPledgeConfettiShown: () => void
@@ -46,6 +50,7 @@ export const useChallanStore = create<ChallanState>()(
       lastTransactionChallanCount: null,
       pledgeConfettiShown: false,
       activeTab: 'pending',
+      tatkalChallanIds: [],
       setChallans: (challans) => set({ challans }),
       toggleChallan: (id) =>
         set((state) => ({
@@ -56,6 +61,13 @@ export const useChallanStore = create<ChallanState>()(
       selectAll: (ids) => set({ selectedChallanIds: ids }),
       clearSelection: () => set({ selectedChallanIds: [] }),
       setActiveTab: (tab) => set({ activeTab: tab }),
+      toggleTatkalChallan: (id) =>
+        set((state) => ({
+          tatkalChallanIds: state.tatkalChallanIds.includes(id)
+            ? state.tatkalChallanIds.filter((cid) => cid !== id)
+            : [...state.tatkalChallanIds, id],
+        })),
+      setTatkalChallanIds: (ids) => set({ tatkalChallanIds: ids }),
       recordTransaction: (id, amount, challanCount) => set({ lastTransactionId: id, lastTransactionAmount: amount, lastTransactionChallanCount: challanCount }),
       markSubmitted: (ids) =>
         set((state) => {
@@ -78,6 +90,7 @@ export const useChallanStore = create<ChallanState>()(
         lastTransactionAmount: state.lastTransactionAmount,
         lastTransactionChallanCount: state.lastTransactionChallanCount,
         pledgeConfettiShown: state.pledgeConfettiShown,
+        tatkalChallanIds: state.tatkalChallanIds,
       }),
     }
   )
