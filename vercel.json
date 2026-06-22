@@ -1,0 +1,8 @@
+{
+  "buildCommand": "cd challanpay-react && npm install && npm run build",
+  "outputDirectory": "challanpay-react/dist",
+  "installCommand": "echo 'skip root install'",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
